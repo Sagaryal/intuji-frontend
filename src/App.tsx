@@ -1,29 +1,27 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { PlayerProvider } from "./context/PlayerContext";
-import { TeamProvider } from "./context/TeamContext";
-import AddPlayer from "./components/AddPlayer";
 import PlayerList from "./components/PlayerList";
-import AddTeam from "./components/AddTeam";
 import TeamList from "./components/TeamList";
 import GenerateTeams from "./components/GenerateTeams";
-import ParticipantsList from "./components/ParticipantsList";
 
 export default function App() {
   return (
-    <Router>
-      <PlayerProvider>
-        <TeamProvider>
-          <ParticipantsList />
-          <div className="max-w-lg mx-auto mt-10 p-4">
-            <h1 className="text-xl font-bold mb-4">Random Team Generator</h1>
-            <AddPlayer />
-            <PlayerList />
-            <AddTeam />
-            <TeamList />
-            <GenerateTeams />
-          </div>
-        </TeamProvider>
-      </PlayerProvider>
-    </Router>
+    <div className="max-w-5xl mx-auto mt-10 p-6 bg-gray-100 shadow-lg rounded-lg">
+      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+        Random Team Generator
+      </h1>
+
+      <div className="flex flex-col md:flex-row gap-6 justify-center">
+        <div className="flex-1 p-4 bg-white rounded-lg shadow-md">
+          <PlayerList />
+        </div>
+
+        <div className="flex-1 p-4 bg-white rounded-lg shadow-md">
+          <TeamList />
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <GenerateTeams />
+      </div>
+    </div>
   );
 }

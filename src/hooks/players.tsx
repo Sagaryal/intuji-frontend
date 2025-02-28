@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 
-interface Player {
-  id: number;
+export interface Player {
+  id: string;
   name: string;
   skill: number;
 }
@@ -23,5 +23,5 @@ export const usePlayers = () => {
     fetchPlayers();
   }, []);
 
-  return { players };
+  return { players, setPlayers, fetchPlayers };
 };
