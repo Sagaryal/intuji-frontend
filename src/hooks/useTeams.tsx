@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
+import { Team } from "../types";
 
-export interface Team {
-  id: string;
-  name: string;
-}
-
-export const useTeams = () => {
+const useTeams = () => {
   const [teams, setTeams] = useState<Team[]>([]);
 
   const fetchTeams = async () => {
@@ -24,3 +20,5 @@ export const useTeams = () => {
 
   return { teams, setTeams, fetchTeams };
 };
+
+export default useTeams;

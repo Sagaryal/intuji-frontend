@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
+import { Player } from "../types";
 
-export interface Player {
-  id: string;
-  name: string;
-  skill: number;
-}
-
-export const usePlayers = () => {
+const usePlayers = () => {
   const [players, setPlayers] = useState<Player[]>([]);
 
   const fetchPlayers = async () => {
@@ -25,3 +20,5 @@ export const usePlayers = () => {
 
   return { players, setPlayers, fetchPlayers };
 };
+
+export default usePlayers;

@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
-import { Player, usePlayers } from "../hooks/players";
+import usePlayers from "../hooks/usePlayers";
+import { Player } from "../types";
+import Input from "./ui/Input";
+import RatingSkill from "./RatingSkill";
+import CrossButton from "./ui/CrossButton";
+import ItemCount from "./ui/ItemCount";
+import SubmitButton from "./ui/SubmitButton";
 
 export default function PlayerList() {
   const { players, setPlayers, fetchPlayers } = usePlayers();
   const [newPlayer, setNewPlayer] = useState<Player | null>(null);
-
   const [skillRating, setSkillRating] = useState<{ [key: string]: number }>({});
-  const [editing, setEditing] = useState<{ [key: string]: string | null }>({});
+  const [editField, setEditField] = useState<{ [key: string]: string | null }>(
+    {}
+  );
   const [formError, setFormError] = useState<{
     id: string;
     message: string;
@@ -18,11 +25,11 @@ export default function PlayerList() {
     const initialSkillRating = players.reduce((acc, player) => {
       acc[player.id] = player.skill;
       return acc;
-    }, {} as { [key: number]: number });
+    }, {} as { [key: string]: number });
     setSkillRating(initialSkillRating);
   }, [players]);
 
-  const handleAddParticipant = () => {
+  const handleAddItem = () => {
     if (newPlayer && formError?.id === newPlayer?.id) return;
     const tempPlayer: Player = {
       id: Date.now().toString(),
@@ -32,7 +39,7 @@ export default function PlayerList() {
     setNewPlayer(tempPlayer);
   };
 
-  const handleDeletePlayer = async (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     try {
       await api.delete(`/players/${id}`);
       await fetchPlayers();
@@ -43,174 +50,139 @@ export default function PlayerList() {
   };
 
   const handleSkillRating = async (id: string, skill: number) => {
-    setSkillRating((prev) => ({ ...prev, [id]: skill }));
     await api.put(`/players/${id}`, {
       name: players.find((p) => p.id === id)?.name,
       skill,
     });
-    // fetchPlayers(); // Refresh player list
+    setSkillRating((prev) => ({ ...prev, [id]: skill }));
   };
 
   const handleNameChange = (id: string, value: string) => {
-    setEditing((prev) => ({ ...prev, [id]: value }));
+    setEditField((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleNameBlur = async (id: string) => {
-    const newName = editing[id]?.trim() || newPlayer?.name.trim();
-    if (!newName) {
-      setFormError({ id, message: "Name cannot be empty!" });
-      return; // Prevent empty name updates
-    }
+  const handleSubmit = async (id: string) => {
+    try {
+      const newName =
+        id === newPlayer?.id ? newPlayer?.name.trim() : editField[id]?.trim();
 
-    setFormError(null);
-    console.log({ newName });
-
-    // If it's a new player, send the API request to create it
-    if (id === newPlayer?.id) {
-      try {
-        await api.post("/players", { name: newName });
-        // Add the newly created player to the state with the ID from the API response
-        // setPlayers((prevPlayers) => [
-        //   ...prevPlayers,
-        //   { id: response.data.id, name: response.data.name},
-        // ]);
-        await fetchPlayers();
-        setNewPlayer(null); // Reset the newPlayer state after the API request
-      } catch (err) {
-        console.error("Error adding player:", err);
-        setFormError({
-          id,
-          message: (err as Error).message || "Error Occured",
-        });
+      // Skip API call if the name hasn't changed
+      const currentName = players.find((player) => player.id === id)?.name;
+      if (newName === currentName) {
+        setEditField((prev) => ({ ...prev, [id]: null }));
+        return;
       }
-    } else {
-      try {
+
+      if (!newName) {
+        setFormError({ id, message: "Name cannot be empty!" });
+        return; // Prevent empty name updates
+      }
+      setFormError(null);
+
+      // If it's a new player, send the API request to create it
+      if (id === newPlayer?.id) {
+        const response = await api.post("/players", {
+          name: newName,
+          skill: newPlayer.skill,
+        });
+
+        setPlayers((prev) => [
+          ...prev,
+          {
+            name: response.data.name,
+            id: response.data.id,
+            skill: response.data.skill,
+          },
+        ]);
+
+        setNewPlayer(null); // Reset the newPlayer state after the API request
+      } else {
         await api.put(`/players/${id}`, {
           name: newName,
+          skill: skillRating[id],
         });
-        // await fetchPlayers();
-        setPlayers((prevPlayers) =>
-          prevPlayers.map((player) =>
-            player.id === id ? { ...player, name: newName } : player
+        setPlayers((prev) =>
+          prev.map((player) =>
+            player.id === id
+              ? { ...player, name: newName, skill: skillRating[id] }
+              : player
           )
         );
-      } catch (err) {
-        console.error("Error updating player:", err);
-        setFormError({
-          id,
-          message: (err as Error).message || "Error Occured",
-        });
       }
+    } catch (err) {
+      console.error("Error occured:", err);
+      setFormError({
+        id,
+        message: (err as Error).message || "Error Occured",
+      });
     }
 
-    setEditing((prev) => ({ ...prev, [id]: null }));
-    // fetchPlayers(); // Refresh player list
+    setEditField((prev) => ({ ...prev, [id]: null }));
   };
-
-  const handleKeyDown = (id: string, e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleNameBlur(id);
-    }
-  };
-
-  console.log({ players });
-  console.log({ skillRating });
-  console.log({ editing });
-  console.log({ newPlayer });
-  console.log({ formError });
 
   return (
     <div className="w-full">
       <h2 className="font-bold text-lg mb-4">Players</h2>
-      {players.map((player) => (
-        <div key={player.id}>
-          <div className="flex items-center justify-between mb-2">
-            <button
-              className="text-red-500 font-bold mr-2"
-              onClick={() => handleDeletePlayer(player.id)}
-            >
-              ×
-            </button>
-            {editing[player.id] !== undefined && editing[player.id] !== null ? (
-              <input
-                type="text"
-                value={editing[player.id] ?? ""}
-                onChange={(e) => handleNameChange(player.id, e.target.value)}
-                onBlur={() => handleNameBlur(player.id)}
-                onKeyDown={(e) => handleKeyDown(player.id, e)}
-                autoFocus
-                className="flex-1 p-1 border"
-                required
-              />
-            ) : (
-              <input
-                type="text"
-                value={player.name}
-                readOnly
+      {players.map((player) => {
+        const isEdit =
+          editField[player.id] !== undefined && editField[player.id] !== null;
+        return (
+          <div key={player.id}>
+            <div className="flex items-center justify-between mb-2">
+              <CrossButton onClick={() => handleDeleteItem(player.id)}>
+                x
+              </CrossButton>
+
+              <Input
+                value={isEdit ? editField[player.id] ?? "" : player.name}
+                onChange={(val) => handleNameChange(player.id, val)}
+                onBlur={() => handleSubmit(player.id)}
                 onClick={() =>
-                  setEditing((prev) => ({ ...prev, [player.id]: player.name }))
+                  setEditField((prev) => ({
+                    ...prev,
+                    [player.id]: player.name,
+                  }))
                 }
-                className="flex-1 p-1 border cursor-pointer"
+                editable={isEdit}
               />
-            )}
-            <div className="flex ml-2 space-x-0 flex-wrap">
-              {[1, 2, 3, 4, 5].map((num) => (
-                <button
-                  key={num}
-                  className={`px-2 py-1 text-white transition-all ${
-                    skillRating[player.id] >= num
-                      ? "bg-red-500 scale-105"
-                      : "bg-gray-300 hover:bg-gray-400"
-                  }`}
-                  onClick={() => handleSkillRating(player.id, num)}
-                >
-                  {num}
-                </button>
-              ))}
+              <RatingSkill
+                skill={skillRating[player.id] || 1}
+                onRate={(num) => handleSkillRating(player.id, num)}
+              />
             </div>
+            {editField?.[player.id] !== null && formError?.id === player.id && (
+              <span className="text-red-400">{formError.message}</span>
+            )}
           </div>
-          {formError && formError.id === player.id && (
-            <span className="text-red-400">{formError.message}</span>
-          )}
-        </div>
-      ))}
+        );
+      })}
       {newPlayer && (
         <>
           <div className="flex items-center justify-between mb-2">
-            <button
-              className="text-red-500 font-bold mr-2"
-              onClick={() => setNewPlayer(null)}
-            >
-              ×
-            </button>
-            <input
-              type="text"
+            <CrossButton onClick={() => setNewPlayer(null)}>x</CrossButton>
+            <Input
               value={newPlayer.name}
-              onChange={(e) =>
-                setNewPlayer({ ...newPlayer, name: e.target.value })
-              }
-              onBlur={() => handleNameBlur(newPlayer.id)}
-              onKeyDown={(e) => handleKeyDown(newPlayer.id, e)}
-              autoFocus
-              className="flex-1 p-1 border"
-              required
+              onChange={(val) => {
+                setFormError(null);
+                setNewPlayer({ ...newPlayer, name: val, skill: 1 });
+              }}
+              onBlur={() => handleSubmit(newPlayer.id)}
+              editable={true}
+            />
+            <RatingSkill
+              skill={newPlayer.skill}
+              onRate={(num) => setNewPlayer({ ...newPlayer, skill: num })}
             />
           </div>
+
           {formError && formError.id === newPlayer.id && (
             <span className="text-red-400">{formError.message}</span>
           )}
         </>
       )}
       <div className="flex items-center mt-4">
-        <span className="font-bold text-gray-700 bg-gray-200 px-4 py-2 border-r border-gray-400">
-          {players.length}
-        </span>
-        <button
-          onClick={handleAddParticipant}
-          className="bg-gray-700 text-white py-2 px-4 hover:bg-gray-800 transition-all"
-        >
-          Add Participant
-        </button>
+        <ItemCount>{players.length + (newPlayer ? 1 : 0)}</ItemCount>
+        <SubmitButton onClick={handleAddItem}> Add Participant</SubmitButton>
       </div>
     </div>
   );
