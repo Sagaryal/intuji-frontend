@@ -1,27 +1,36 @@
 import { useState } from "react";
 import { api } from "../services/api";
-import { FiExternalLink, FiCopy } from "react-icons/fi";
-import GeneratedTeam from "./ui/GeneratedTeam";
+import DisplayTeam from "./ui/DisplayTeam";
+import ShareLink from "./ui/ShareLink";
+import { ResponseData } from "../types";
+import TeamHeader from "./ui/TeamHeader";
 
 export default function GenerateTeams() {
-  const [generatedTeams, setGeneratedTeams] = useState<Record<
-    string,
-    any[]
-  > | null>(null);
+  const [data, setData] = useState<ResponseData | null>(null);
 
   const [shareLink, setShareLink] = useState<string | null>(null);
-  const [title, setTitle] = useState<string>("");
+  const [inputTitle, setInputTitle] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    const response = await api.post("/teams/generate-teams");
-    setGeneratedTeams(response.data.teamResults);
-    setShareLink(`http://localhost:5173/team-${response.data.uniqueId}`);
-  };
+    if (!inputTitle.trim()) {
+      setError("Title is required!"); // Set the error message
+      return;
+    }
+    setError(null);
 
-  const copyToClipboard = () => {
-    if (shareLink) {
-      navigator.clipboard.writeText(shareLink);
-      alert("Link copied to clipboard!");
+    try {
+      const response = await api.post("/teams/generate-teams", {
+        title: inputTitle,
+      });
+      setData({
+        title: response.data.title,
+        uniqueId: response.data.uniqueId,
+        teams: response.data.teams,
+      });
+      setShareLink(`http://localhost:5173/team-${response.data.uniqueId}`);
+    } catch (err) {
+      setError("Error generating teams. Please try again.");
     }
   };
 
@@ -32,9 +41,9 @@ export default function GenerateTeams() {
         <input
           id="title"
           type="text"
-          value={title}
+          value={inputTitle}
           placeholder="Title for the match"
-          onChange={(e) => setTitle(e.target.value)} // Update title on change
+          onChange={(e) => setInputTitle(e.target.value)}
           className="h-10 w-sm px-3 py-2 border border-custom-gray-2 bg-white"
         />
         <button
@@ -44,52 +53,12 @@ export default function GenerateTeams() {
           Generate Balanced Teams
         </button>
       </div>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
+      {data?.teams && <TeamHeader data={data.teams} title={data.title} />}
 
-      <div>
-        {shareLink && (
-          <>
-            <div className="bg-gray-800 text-white p-4 mt-6">
-              <h2 className="text-lg font-semibold">Friday Futsal</h2>
-              <p className="text-sm">10 participants in 2 teams</p>
-            </div>
-            <div className="mt-4 p-4 bg-gray-100">
-              {/* Share Link Header */}
-              <div className="flex items-center">
-                <h3 className="text-lg font-semibold">Share Link</h3>
-                <span className="text-gray-500 text-sm ml-2">
-                  (Public draw)
-                </span>
-                <a
-                  href={shareLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-custom-gray-3 hover:text-gray-600"
-                >
-                  <FiExternalLink size={16} />
-                </a>
-              </div>
+      {shareLink && <ShareLink url={shareLink} />}
 
-              {/* Share Link Input + Copy Button */}
-              <div className="mt-2 flex items-center">
-                <input
-                  type="text"
-                  value={shareLink}
-                  readOnly
-                  className="w-md h-8 border border-custom-gray-2 border-r-0 px-3 py-1 bg-white text-gray-700"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className="h-8 border border-custom-gray-2 bg-gray-300 hover:bg-gray-400 px-3 py-1 text-sm hover:cursor-pointer"
-                >
-                  <FiCopy size={16} />
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      <GeneratedTeam data={generatedTeams} />
+      {data?.teams && <DisplayTeam data={data.teams} />}
     </div>
   );
 }

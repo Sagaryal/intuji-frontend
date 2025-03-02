@@ -26,9 +26,9 @@ const Input: React.FC<InputProps> = ({
 
   const handleBlur = () => {
     if (!enterPressed) {
-      onBlur(); // Only call onBlur if Enter wasn't pressed
+      onBlur();
     }
-    setEnterPressed(false); // Reset the flag
+    setEnterPressed(false);
   };
 
   return (

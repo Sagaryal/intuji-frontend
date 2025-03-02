@@ -1,8 +1,3 @@
-// export interface Item {
-//   id: string;
-//   name: string;
-// }
-
 export interface Item {
   id: string;
 }
@@ -39,4 +34,10 @@ export interface EditableListProps {
   title: string;
   useHook: () => UseEditableListReturn;
   itemType: string;
+}
+
+export interface ResponseData {
+  title: string;
+  uniqueId: string;
+  teams: Record<string, any[]>;
 }

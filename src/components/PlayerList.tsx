@@ -40,6 +40,11 @@ export default function PlayerList() {
   };
 
   const handleDeleteItem = async (id: string) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this team?"
+    );
+    if (!isConfirmed) return;
+
     try {
       await api.delete(`/players/${id}`);
       await fetchPlayers();
