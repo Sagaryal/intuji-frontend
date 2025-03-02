@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { api } from "../services/api";
+import { post, put, remove } from "../services/api";
 import useTeams from "../hooks/useTeams";
 import Input from "./ui/Input";
 import { Team } from "../types";
 import CrossButton from "./ui/CrossButton";
 import SubmitButton from "./ui/SubmitButton";
 import ItemCount from "./ui/ItemCount";
+
+const slug = "teams";
 
 export default function TeamList() {
   const { teams, setTeams, fetchTeams } = useTeams();
@@ -31,7 +33,7 @@ export default function TeamList() {
     if (!isConfirmed) return;
 
     try {
-      await api.delete(`/teams/${id}`);
+      await remove(slug, id);
       await fetchTeams();
     } catch (err) {
       console.error("Error deleting team:", err);
@@ -63,18 +65,18 @@ export default function TeamList() {
 
       // If it's a new team, send the API request to create it
       if (id === newTeam?.id) {
-        const response = await api.post("/teams", { name: newName });
+        const data = await post<any, Team>(slug, { name: newName });
         setTeams((prev) => [
           ...prev,
           {
-            name: response.data.name,
-            id: response.data.id,
+            name: data.name,
+            id: data.id,
           },
         ]);
 
-        setNewTeam(null); // Reset the newTeam state after the API request
+        setNewTeam(null);
       } else {
-        await api.put(`/teams/${id}`, { name: newName });
+        await put<any, Team>(slug, id, { name: newName });
         setTeams((prev) =>
           prev.map((team) =>
             team.id === id ? { ...team, name: newName } : team

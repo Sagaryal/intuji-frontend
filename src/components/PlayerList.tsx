@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "../services/api";
+import { post, put, remove } from "../services/api";
 import usePlayers from "../hooks/usePlayers";
 import { Player } from "../types";
 import Input from "./ui/Input";
@@ -7,6 +7,8 @@ import RatingSkill from "./RatingSkill";
 import CrossButton from "./ui/CrossButton";
 import ItemCount from "./ui/ItemCount";
 import SubmitButton from "./ui/SubmitButton";
+
+const slug = "players";
 
 export default function PlayerList() {
   const { players, setPlayers, fetchPlayers } = usePlayers();
@@ -46,7 +48,7 @@ export default function PlayerList() {
     if (!isConfirmed) return;
 
     try {
-      await api.delete(`/players/${id}`);
+      await remove(slug, id);
       await fetchPlayers();
     } catch (err) {
       console.error("Error deleting player:", err);
@@ -55,7 +57,7 @@ export default function PlayerList() {
   };
 
   const handleSkillRating = async (id: string, skill: number) => {
-    await api.put(`/players/${id}`, {
+    await put<any, Player>(slug, id, {
       name: players.find((p) => p.id === id)?.name,
       skill,
     });
@@ -86,23 +88,22 @@ export default function PlayerList() {
 
       // If it's a new player, send the API request to create it
       if (id === newPlayer?.id) {
-        const response = await api.post("/players", {
+        const data = await post<any, Player>(slug, {
           name: newName,
           skill: newPlayer.skill,
         });
-
         setPlayers((prev) => [
           ...prev,
           {
-            name: response.data.name,
-            id: response.data.id,
-            skill: response.data.skill,
+            name: data.name,
+            id: data.id,
+            skill: data.skill,
           },
         ]);
 
         setNewPlayer(null); // Reset the newPlayer state after the API request
       } else {
-        await api.put(`/players/${id}`, {
+        await put<any, Player>(slug, id, {
           name: newName,
           skill: skillRating[id],
         });

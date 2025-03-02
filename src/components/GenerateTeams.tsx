@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { api } from "../services/api";
+import { post } from "../services/api";
 import DisplayTeam from "./ui/DisplayTeam";
 import ShareLink from "./ui/ShareLink";
 import { ResponseData } from "../types";
 import TeamHeader from "./ui/TeamHeader";
+import { LOCAL_URL } from "../services/constants";
 
 export default function GenerateTeams() {
   const [data, setData] = useState<ResponseData | null>(null);
@@ -20,15 +21,15 @@ export default function GenerateTeams() {
     setError(null);
 
     try {
-      const response = await api.post("/teams/generate-teams", {
+      const data = await post<any, ResponseData>("/teams/generate-teams", {
         title: inputTitle,
       });
       setData({
-        title: response.data.title,
-        uniqueId: response.data.uniqueId,
-        teams: response.data.teams,
+        title: data.title,
+        uniqueId: data.uniqueId,
+        teams: data.teams,
       });
-      setShareLink(`http://localhost:5173/team-${response.data.uniqueId}`);
+      setShareLink(`${LOCAL_URL}/team-${data.uniqueId}`);
     } catch (err) {
       setError("Error generating teams. Please try again.");
     }

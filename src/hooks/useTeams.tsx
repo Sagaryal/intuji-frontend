@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { get } from "../services/api";
 import { Team } from "../types";
 
 const useTeams = () => {
@@ -7,8 +7,8 @@ const useTeams = () => {
 
   const fetchTeams = async () => {
     try {
-      const response = await api.get("/teams");
-      setTeams(response.data);
+      const data = await get<Team[]>("/teams");
+      setTeams(data);
     } catch (error) {
       console.error("Failed to fetch teams", error);
     }

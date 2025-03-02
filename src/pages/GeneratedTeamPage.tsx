@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../services/api";
+import { get } from "../services/api";
 import DisplayTeam from "../components/ui/DisplayTeam";
 import { RiseLoader } from "react-spinners";
 import { MdOutlineGroups } from "react-icons/md";
@@ -22,11 +22,13 @@ const GeneratedTeamPage = () => {
       setError(null);
 
       try {
-        const response = await api.get(`/teams/generated-teams/${uniqueId}`);
+        const data = await get<ResponseData>(
+          `/teams/generated-teams/${uniqueId}`
+        );
         setData({
-          title: response.data.title,
-          uniqueId: response.data.uniqueId,
-          teams: response.data.teams,
+          title: data.title,
+          uniqueId: data.uniqueId,
+          teams: data.teams,
         });
       } catch (err: any) {
         if (err.response?.status === 404) {

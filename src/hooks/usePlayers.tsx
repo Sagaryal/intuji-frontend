@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { get } from "../services/api";
 import { Player } from "../types";
 
 const usePlayers = () => {
@@ -7,8 +7,8 @@ const usePlayers = () => {
 
   const fetchPlayers = async () => {
     try {
-      const response = await api.get("/players");
-      setPlayers(response.data);
+      const data = await get<Player[]>("/players");
+      setPlayers(data);
     } catch (error) {
       console.error("Failed to fetch players", error);
     }
