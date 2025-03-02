@@ -1,50 +1,56 @@
-# React + TypeScript + Vite
+# Project Name
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A brief description of your project and what it does.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before you begin, ensure you have met the following requirements:
 
-## Expanding the ESLint configuration
+- Node.js (v22 or above)
+- pnpm (Node package manager)
+- Git (if cloning from a repository)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+You can install pnpm globally by running:
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install -g pnpm
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+You can check your Node.js version by running:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+node -v
 ```
+
+If you need to upgrade Node.js, visit https://nodejs.org/ for installation instructions.
+
+## Getting Started
+
+### 1. Clone the repository
+
+If you haven't already, clone the repository to your local machine using Git:
+
+```bash
+git clone https://github.com/your-username/your-repository.git
+cd your-repository
+```
+
+### 2. Install dependencies
+
+To install the project dependencies, run the following command:
+
+```bash
+pnpm install
+```
+
+This will install all the required packages listed in `package.json`.
+
+### 3. Run the development server
+
+After installing the dependencies and setting up environment variables, you can start the vite development server:
+
+```bash
+pnpm dev
+```
+
+This will start the application locally at [http://localhost:5173](http://localhost:5173).
