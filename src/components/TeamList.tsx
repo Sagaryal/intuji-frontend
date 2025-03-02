@@ -65,14 +65,8 @@ export default function TeamList() {
 
       // If it's a new team, send the API request to create it
       if (id === newTeam?.id) {
-        const data = await post<any, Team>(slug, { name: newName });
-        setTeams((prev) => [
-          ...prev,
-          {
-            name: data.name,
-            id: data.id,
-          },
-        ]);
+        await post<any, Team>(slug, { name: newName });
+        await fetchTeams();
 
         setNewTeam(null);
       } else {

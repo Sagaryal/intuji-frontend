@@ -43,7 +43,7 @@ export default function PlayerList() {
 
   const handleDeleteItem = async (id: string) => {
     const isConfirmed = window.confirm(
-      "Are you sure you want to delete this team?"
+      "Are you sure you want to delete this player?"
     );
     if (!isConfirmed) return;
 
@@ -88,20 +88,12 @@ export default function PlayerList() {
 
       // If it's a new player, send the API request to create it
       if (id === newPlayer?.id) {
-        const data = await post<any, Player>(slug, {
+        await post<any, Player>(slug, {
           name: newName,
           skill: newPlayer.skill,
         });
-        setPlayers((prev) => [
-          ...prev,
-          {
-            name: data.name,
-            id: data.id,
-            skill: data.skill,
-          },
-        ]);
-
-        setNewPlayer(null); // Reset the newPlayer state after the API request
+        await fetchPlayers();
+        setNewPlayer(null);
       } else {
         await put<any, Player>(slug, id, {
           name: newName,
